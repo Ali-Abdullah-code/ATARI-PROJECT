@@ -277,6 +277,41 @@ CheckBoundaryforPaddle:
 ;==============================================
 
 
+eraseBall:
+        push bp
+        mov bp,sp
+        push ax
+        push es
+        push di
+        mov ax,0xb800
+        mov es,ax
+        mov di,[ballPos]
+        mov ax,0x0720
+        mov [es:di],ax
+        pop di
+        pop es
+        pop ax
+        pop bp
+        ret
+
+PrintBall:
+        push bp
+        mov bp,sp
+        push ax
+        push es
+        push di
+        mov ax,0xb800
+        mov es,ax
+        mov di,[ballPos]
+        mov ax,0x07F8
+        mov [es:di],ax
+        pop di
+        pop es
+        pop ax
+        pop bp
+        ret
+
+
 main:
         call clrscr
         cmp byte[flagEnter],1
