@@ -21,6 +21,49 @@ flagEsc: db 0
 flagEnter: db 0
 
 
+line3: db 'PLAY', 0
+lines: db 0
+line1: dw  1,1,1,1,1,1,0,1,1,1,1,1,1,0,1,1,1,1,1,1,0,1,1,1,1,1,1,0,1,1,1,1,1,1  ;34
+       dw  1,1,0,0,1,1,0,0,0,1,1,0,0,0,1,1,0,0,1,1,0,1,1,0,0,1,1,0,0,0,1,1,0,0
+       dw  1,1,1,1,1,1,0,0,0,1,1,0,0,0,1,1,1,1,1,1,0,1,1,1,1,0,0,0,0,0,1,1,0,0
+       dw  1,1,0,0,1,1,0,0,0,1,1,0,0,0,1,1,0,0,1,1,0,1,1,0,0,1,1,0,0,0,1,1,0,0
+       dw  1,1,0,0,1,1,0,0,0,1,1,0,0,0,1,1,0,0,1,1,0,1,1,0,0,1,1,0,1,1,1,1,1,1
+line2: dw  1,1,1,1,1,1,0,1,1,1,1,1,1,0,1,1,1,1,1,1,0,1,1,1,1,1,1,0,1,1,0,0,1,1,0,1,1,1,1,1,0,1,1,0,0,1,1,0,1,1,1,1,1,1  ;54
+       dw  1,1,0,0,1,1,0,1,1,0,0,1,1,0,1,1,0,0,0,0,0,1,1,0,0,1,1,0,1,1,1,1,0,0,0,1,1,0,1,1,0,1,1,0,0,1,1,0,0,0,1,1,0,0
+       dw  1,1,1,1,1,1,0,1,1,1,1,0,0,0,1,1,1,1,1,1,0,1,1,1,1,1,1,0,1,1,0,0,0,0,0,1,1,0,1,1,0,1,1,0,0,1,1,0,0,0,1,1,0,0
+       dw  1,1,0,0,1,1,0,1,1,0,0,1,1,0,1,1,0,0,0,0,0,1,1,0,0,1,1,0,1,1,1,1,0,0,0,1,1,0,1,1,0,1,1,0,0,1,1,0,0,0,1,1,0,0
+       dw  1,1,1,1,1,1,0,1,1,0,0,1,1,0,1,1,1,1,1,1,0,1,1,0,0,1,1,0,1,1,0,0,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,0,0,0,1,1,0,0
+
+lineYou:    dw 1,0,0,0,1,0,1,1,1,1,0,1,0,0,1  ;15
+            dw 1,0,0,0,1,0,1,0,0,1,0,1,0,0,1
+            dw 1,1,1,1,1,0,1,0,0,1,0,1,0,0,1
+            dw 0,0,1,0,0,0,1,0,0,1,0,1,0,0,1
+            dw 0,0,1,0,0,0,1,1,1,1,0,1,1,1,1
+lineLose:   dw 1,0,0,0,0,1,1,1,1,0,1,1,1,1,0,1,1,1,1    ;19
+            dw 1,0,0,0,0,1,0,0,1,0,1,0,0,0,0,1,0,0,0
+            dw 1,0,0,0,0,1,0,0,1,0,1,1,1,1,0,1,1,1,1
+            dw 1,0,0,0,0,1,0,0,1,0,0,0,0,1,0,1,0,0,0
+            dw 1,1,1,1,0,1,1,1,1,0,1,1,1,1,0,1,1,1,1
+lineWin:    dw 1,0,0,0,1,0,1,1,1,0,1,0,0,0,1    ;15
+            dw 1,0,0,0,1,0,0,1,0,0,1,1,0,0,1
+            dw 1,0,1,0,1,0,0,1,0,0,1,0,1,0,1
+            dw 1,0,1,0,1,0,0,1,0,0,1,0,0,1,1
+            dw 0,1,0,1,0,0,1,1,1,0,1,0,0,0,1
+rulesLine:  db '1.  Press & Hold --> to move right.'
+            db '2.  Press & Hold <-- to move left.'
+            db '3.  Make sure the ball do not touch the bottom.'
+            db '4.  3 lives are given and shown in upper right corner.'
+            db '5.  There are Red, Orange, Yellow & Green bricks.'
+            db '6.  All bricks break on different number of hits.'
+            db '7.  The score is shown in top left corner.'
+            db '8.  Press Esc button to leave the game.'
+rulesHeading: db 'GAME RULES'
+
+
+;==========================================================================
+;
+;
+;==========================================================================
 clrscr:
         push bp
         mov bp,sp
@@ -161,7 +204,427 @@ printBoundaries:
         pop bp
         ret
 
-    printNumber:
+printRulesPage:
+        call clrscr
+        push ax
+        push bx
+        push cx
+        push es
+        push si
+        push di
+
+        mov ax, 0xb800
+        mov es, ax
+
+        mov ah, 0x40
+        mov si, rulesHeading
+        mov bx, 0
+        mov cx, 10
+        mov di, 708
+    headingLoop:
+        mov al, [si+bx]
+        mov [es:di], ax
+        add di, 2
+        inc bx
+        loop headingLoop
+
+        mov di, 548
+        mov ax, 0x4020
+        mov cx, 10
+    upBorder:
+        mov [es:di], ax
+        add di, 2
+        loop upBorder
+        add di, 160
+        mov [es:di], ax
+        add di, 160
+        mov cx, 10
+    downBorder:
+        sub di, 2
+        mov [es:di], ax
+        loop downBorder
+        sub di, 162
+        mov [es:di], ax
+
+        mov ah, 0x03
+        mov si, rulesLine
+        mov bx, 0
+        mov di, 1460
+        mov cx, 35
+    rule1: 
+            mov al, [si+bx]
+            mov [es:di], ax
+            add di, 2
+            inc bx
+            loop rule1
+
+        mov di, 1620
+        mov cx, 34
+    rule2: 
+            mov al, [si+bx]
+            mov [es:di], ax
+            add di, 2
+            inc bx
+            loop rule2
+
+        mov di, 1780
+        mov cx, 47
+    rule3: 
+            mov al, [si+bx]
+            mov [es:di], ax
+            add di, 2
+            inc bx
+            loop rule3
+        
+        mov di, 1940
+        mov cx, 54
+    rule4: 
+            mov al, [si+bx]
+            mov [es:di], ax
+            add di, 2
+            inc bx
+            loop rule4
+        
+        mov di, 2100
+        mov cx, 49
+    rule5: 
+            mov al, [si+bx]
+            mov [es:di], ax
+            add di, 2
+            inc bx
+            loop rule5
+        
+        mov di, 2260
+        mov cx, 49
+    rule6: 
+            mov al, [si+bx]
+            mov [es:di], ax
+            add di, 2
+            inc bx
+            loop rule6
+        
+        mov di, 2420
+        mov cx, 42
+    rule7: 
+            mov al, [si+bx]
+            mov [es:di], ax
+            add di, 2
+            inc bx
+            loop rule7
+        
+        mov di, 2580
+        mov cx, 39
+    rule8: 
+            mov al, [si+bx]
+            mov [es:di], ax
+            add di, 2
+            inc bx
+            loop rule8
+        call printEnterMessage
+        pop di
+        pop si
+        pop es
+        pop cx
+        pop bx
+        pop ax
+        ret
+
+printWelcomePage:
+        push ax
+        push bx
+        push cx
+        push es
+        push si
+        push di
+
+        mov ax, 0xb800
+        mov es, ax
+        mov ax, 0x3720
+
+        mov di, 846
+        mov si, line1
+        mov bx, 0
+        mov byte [lines], 0
+    outerLoopWel1:
+            mov cx, 34
+        innerLoopWel1:
+            mov dx, [si+bx]
+            cmp dx, 0
+            je iterWel1
+            mov [es:di], ax
+        iterWel1:
+            add di, 2
+            add bx, 2
+            loop innerLoopWel1
+        
+        add di, 92
+        inc byte [lines]
+        cmp byte [lines], 5
+        jne outerLoopWel1
+
+        mov byte [lines], 0
+        mov di, 1786
+        mov si, line2
+        mov bx, 0
+    outerLoopWel2:
+            mov cx, 54
+        innerLoopWel2:
+            mov dx, [si+bx]
+            cmp dx, 0
+            je iterWel2
+            mov [es:di], ax
+        iterWel2:
+            add di, 2
+            add bx, 2
+            loop innerLoopWel2
+        
+        add di, 52
+        inc byte [lines]
+        cmp byte [lines], 5
+        jne outerLoopWel2
+
+        call printEnterMessage
+
+        pop di
+        pop si
+        pop es
+        pop cx
+        pop bx
+        pop ax
+        ret
+
+printWinPage:
+        call clrscr
+        push ax
+        push bx
+        push cx
+        push es
+        push si
+        push di
+
+        mov ax, 0xb800
+        mov es, ax
+        mov ax, 0x3720
+
+        mov di, 1024
+        mov si, lineYou
+        mov bx, 0
+        mov byte [lines], 0
+        outerLoopYou:
+            mov cx, 15
+            innerLoopYou:
+            mov dx, [si+bx]
+            cmp dx, 0
+            je iterYou
+            mov [es:di], ax
+            iterYou:
+            add di, 2
+            add bx, 2
+            loop innerLoopYou
+        
+        add di, 130
+        inc byte [lines]
+        cmp byte [lines], 5
+        jne outerLoopYou
+
+        mov byte [lines], 0
+        mov di, 1984
+        mov si, lineWin
+        mov bx, 0
+        outerLoopWin:
+            mov cx, 15
+            innerLoopWin:
+            mov dx, [si+bx]
+            cmp dx, 0
+            je iterWin
+            mov [es:di], ax
+            iterWin:
+            add di, 2
+            add bx, 2
+            loop innerLoopWin
+        
+        add di, 130
+        inc byte [lines]
+        cmp byte [lines], 5
+        jne outerLoopWin
+
+        call printScore
+
+        pop di
+        pop si
+        pop es
+        pop cx
+        pop bx
+        pop ax
+        ret
+
+printLosePage:
+        call clrscr
+        pusha
+        
+        mov ax, 0xb800
+        mov es, ax
+        mov ax, 0x3720
+
+        mov di, 1024
+        mov si, lineYou
+        mov bx, 0
+        mov byte [lines], 0
+        outerLoopYou2:
+            mov cx, 15
+            innerLoopYou2:
+            mov dx, [si+bx]
+            cmp dx, 0
+            je iterYou2
+            mov [es:di], ax
+            iterYou2:
+            add di, 2
+            add bx, 2
+            loop innerLoopYou2
+        
+        add di, 130
+        inc byte [lines]
+        cmp byte [lines], 5
+        jne outerLoopYou2
+
+        mov byte [lines], 0
+        mov di, 1980
+        mov si, lineLose
+        mov bx, 0
+        outerLoopLose:
+            mov cx, 19
+            innerLoopLose:
+            mov dx, [si+bx]
+            cmp dx, 0
+            je iterLose
+            mov [es:di], ax
+            iterLose:
+            add di, 2
+            add bx, 2
+            loop innerLoopLose
+        
+        add di, 122
+        inc byte [lines]
+        cmp byte [lines], 5
+        jne outerLoopLose
+
+        call printScore
+        
+        popa
+        ret
+
+printScore:
+        push ax
+        push dx
+        push bx
+        push cx
+        push si
+
+        mov di, 3104
+        mov cx, 12
+        mov ah, 0x0F
+        mov si, scoreLine
+        mov bx, 0
+        loopScoreLine:
+            mov al, [si+bx]
+            mov [es:di], ax
+            inc bx
+            add di, 2
+            loop loopScoreLine
+
+        mov ax, [score]
+        mov bx, 10
+        divideNumber: 
+            mov dx, 0
+            div bx 
+            add dl, 0x30 
+            push dx     
+            inc cx     
+            cmp ax, 0 
+            jnz divideNumber
+
+        nextpos: 
+            pop dx         
+            mov dh, 0x07 
+            mov [es:di], dx 
+            add di, 2        
+            loop nextpos
+
+        pop si
+        pop cx
+        pop bx
+        pop dx
+        pop ax
+        ret
+
+printEnterMessage:
+        push si
+        push di
+        push ax
+        push cx
+        push ds
+        push es 
+
+        mov si, enterMessage
+        push ds
+        push si
+        call strlen
+        mov si, enterMessage
+        mov cx,ax
+        mov ax,0xb800
+        mov es,ax
+        mov di,3576
+        mov ah,0x84
+        
+        cld
+        nexttry: 
+        lodsb
+        stosw
+        loop nexttry
+        
+        pop es
+        pop ds
+        pop cx
+        pop ax
+        pop di
+        pop si
+        ret
+msgForScore: db 'Score: '
+PrintScoreAndLife:
+        push bp
+        mov bp,sp
+        pusha
+        mov di,10
+        mov ax,0xb800
+        mov es,ax
+        mov cx,7
+        mov si,msgForScore
+        mov ah,0x0C
+        l1:
+        cld 
+        lodsb
+        stosw
+        loop l1
+        add di,2
+        push di
+        push word[score]
+        call printNumber
+        mov ax,0x0720
+        mov di,156
+        mov cx,3
+        std 
+        rep stosw
+        mov ax,0x0C03
+        mov ch,0
+        mov cl,byte[healthcounter]
+        mov di,156
+        std
+        rep stosw
+        popa
+        pop bp
+        ret
+
+printNumber:
         push bp
         mov bp, sp
 
@@ -276,7 +739,6 @@ CheckBoundaryforPaddle:
 
 ;==============================================
 
-
 eraseBall:
         push bp
         mov bp,sp
@@ -310,6 +772,7 @@ PrintBall:
         pop ax
         pop bp
         ret
+
 
 ;==========================================================
 ; Read KeyBoard 
@@ -381,7 +844,6 @@ readKeyBoard:
         pop bp
         ret
 
-
 ;============================================================
 UpwardDownWardPrintBall:
         push bp
@@ -446,36 +908,6 @@ cornerCollisionAngleUpdate:
         pop ax
         pop bp
         ret
-
-;=====================================================
-ballAngleUpdate:
-        push bp
-        mov bp, sp
-        push ax
-        mov ax,360
-        sub ax,word[ballAngle]
-        mov word[ballAngle],ax
-        pop ax
-        pop bp
-        ret
-    wallAngleUpdate:
-        push bp
-        mov bp, sp
-        push ax
-        mov ax,180
-        sub ax,word[ballAngle]
-        cmp word[ballAngle], 180
-        jl exitWall
-        jg check225
-    check225:
-        add ax,360
-        jmp exitWall
-    exitWall:
-        mov word[ballAngle],ax
-        pop ax
-        pop bp
-        ret
-
 
 ;=====================================================
 ballAngleUpdate:
@@ -687,6 +1119,42 @@ CollisionBallCheckForEveryDirection:
         pop bp
         ret
 
+
+;========================================================
+startGame:
+        push bp
+        mov bp,sp
+        push ax
+        ; reduce one life 
+        dec word[healthcounter]
+        mov ax,400
+        push ax
+        call soundeffect
+        mov word[ballPos],3604
+        mov word[ballAngle],90
+        call Timer
+        call Timer
+        pop ax
+        pop bp
+        ret
+
+isGameOver:
+        push bp
+        mov bp,sp
+        cmp word[BrickerCounter],0
+        jne HealthBar
+        call printWinPage
+        mov byte[gameOverFlag],1
+        jmp notOver
+    HealthBar:
+        cmp byte[healthcounter],0
+        jne notOver
+        call printLosePage
+        mov byte[gameOverFlag],1
+    notOver:
+        pop bp
+        ret
+
 BallMovement:
         push bp
         mov bp,sp
@@ -711,6 +1179,93 @@ BallMovement:
         pop bp
         ret
 
+;==========================================================
+
+soundeffect:
+        push bp
+        mov bp,sp
+        pusha
+        mov bx,[bp+4]          ; correct: get frequency from stack
+        mov ax, 34DCh
+        mov dx, 12h
+        div bx                
+        mov bx,ax
+        mov al,bl
+        out 42h,al            
+        mov al,bh
+        out 42h,al
+
+        ; speaker turn on
+        in al,61h
+        or al,00000011b
+        out 61h,al
+
+        call Timer           
+
+        in al,61h
+        and al,11111100b        
+        out 61h,al
+        popa
+        pop bp
+        ret 2           
+;=========================================================
+EnterorEsc:
+        push bp
+        mov byte[flagEsc],0
+        mov byte[flagEnter],0
+    tryagain1:
+        mov ah,0
+        int 0x16
+        cmp al,13
+        je exitToplayGame1
+        cmp al,27
+        je excloop11
+        jmp tryagain1
+    excloop11:
+        mov byte[flagEsc],1
+        jmp skiiiip
+    exitToplayGame1:
+        mov byte[flagEnter],1
+    skiiiip:
+        pop bp
+        ret
+
+;=========================================================
+
+main:
+        call clrscr
+        call printWelcomePage
+        call EnterorEsc
+        cmp byte[flagEnter],1
+        je exitToplayGame
+        cmp byte[flagEsc],1
+        je excloop1
+    exitToplayGame:
+        call printRulesPage
+        call EnterorEsc
+        cmp byte[flagEnter],1
+        je EnjoyTheRide
+        cmp byte[flagEsc],1
+        je excloop1
+    EnjoyTheRide:
+        call clrscr
+        call MakingBricks
+        call printBoundaries
+        call printPaddle
+        call PrintBall
+        call readKeyBoard
+        call BallMovement
+    excloop: 
+        mov ah, 0 ; service 0 – get keystroke
+        int 0x16 ; call BIOS keyboard service
+        cmp al, 27 ; is the Esc key pressed
+    jne excloop
+    excloop1:
+    mov ax,0x1
+    int 21h
+    mov ax,0x4c00
+    int 21h
+
 ;=====================================================
 Timer:
         push bp
@@ -726,30 +1281,3 @@ Timer:
         pop cx
         pop bp
         ret
-
-
-main:
-        call clrscr
-        cmp byte[flagEnter],1
-        je exitToplayGame
-        cmp byte[flagEsc],1
-        je excloop1
-    exitToplayGame:
-        cmp byte[flagEnter],1
-        je EnjoyTheRide
-        cmp byte[flagEsc],1
-        je excloop1
-    EnjoyTheRide:
-        call clrscr
-        call MakingBricks
-        call printBoundaries
-    excloop: 
-        mov ah, 0 ; service 0 – get keystroke
-        int 0x16 ; call BIOS keyboard service
-        cmp al, 27 ; is the Esc key pressed
-    jne excloop
-    excloop1:
-    mov ax,0x1
-    int 21h
-    mov ax,0x4c00
-    int 21h
