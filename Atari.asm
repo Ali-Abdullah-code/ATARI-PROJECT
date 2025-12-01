@@ -477,6 +477,256 @@ ballAngleUpdate:
         ret
 
 
+;=====================================================
+ballAngleUpdate:
+        push bp
+        mov bp, sp
+        push ax
+        mov ax,360
+        sub ax,word[ballAngle]
+        mov word[ballAngle],ax
+        pop ax
+        pop bp
+        ret
+    wallAngleUpdate:
+        push bp
+        mov bp, sp
+        push ax
+        mov ax,180
+        sub ax,word[ballAngle]
+        cmp word[ballAngle], 180
+        jl exitWall
+        jg check225
+    check225:
+        add ax,360
+        jmp exitWall
+    exitWall:
+        mov word[ballAngle],ax
+        pop ax
+        pop bp
+        ret
+
+;==============================================
+PaddleCollisionwithBall:
+        push bp
+        mov bp,sp
+        push ax
+        push bx
+        push cx
+
+        mov bx,[ballPos]
+        add bx,2
+
+        ; AX = paddle start position
+        mov ax,80
+        mov cl,23
+        mul cl
+        add ax,word[paddleY]
+        shl ax,1          ; AX = paddlePos start
+
+        ; CX = paddle start
+        mov cx,ax
+        add ax,4         ;2 cell
+        cmp bx,ax
+        je middle
+        jl left
+        add ax,4
+        cmp bx,ax
+        jge right
+
+    middle:
+        mov word[ballAngle],90
+        jmp done
+
+    left:
+        mov word[ballAngle],135
+        jmp done
+
+    right:
+        mov word[ballAngle],45
+
+    done:
+        pop cx
+        pop bx
+        pop ax
+        pop bp
+        ret
+;======================================================
+CollisionBallCheckForEveryDirection:
+        push bp
+        mov bp, sp
+        push ax
+        push bx
+        push di
+        pusha
+
+        mov ax, 0xb800
+        mov es, ax
+        mov di, [ballPos]
+
+        mov bx, 0x60C4
+        cmp bx, [es:di]
+        jne checkSideWalls
+        call ballAngleUpdate
+        call UpwardDownWardPrintBall
+        jmp exitCollision
+
+    checkSideWalls:
+        mov bx, 0x60B3
+        cmp bx, [es:di]
+        jne checkPaddle
+        call wallAngleUpdate
+        call UpwardDownWardPrintBall
+        jmp exitCollision
+
+    checkPaddle:
+        mov bx, 0x07DF        ;paddle code
+        cmp bx, [es:di]
+        jne checkCorners
+        call PaddleCollisionwithBall
+        call UpwardDownWardPrintBall
+        mov ax,800
+        push ax
+        call soundeffect
+        jmp exitCollision
+    checkCorners:
+        mov bx, 0x60DA        ; top-left corner
+
+        cmp bx, [es:di]
+        je isCorner
+
+        mov bx, 0x60BF        ; top-right corner
+        cmp bx, [es:di]
+        je isCorner
+
+        mov bx, 0x60C0        ; bottom-left corner
+        cmp bx, [es:di]
+        je isCorner
+
+        mov bx, 0x60D9     
+        cmp bx, [es:di]
+        je isCorner
+
+        jmp checkLastRow    
+
+    isCorner:
+        call cornerCollisionAngleUpdate
+        call UpwardDownWardPrintBall
+        mov ax,900
+        push ax
+        call soundeffect
+        jmp exitCollision
+    checkLastRow:
+        mov bx,0x6078  ;last row
+        cmp bx,[es:di]
+        jne CheckBrick
+        call startGame
+        call UpwardDownWardPrintBall
+        jmp exitCollision
+    CheckBrick:
+        mov bx,0x04DB ;red color check
+        cmp bx,[es:di]
+        jne nextColorRed
+        mov ax,0x0CDB
+        mov [es:di],ax
+        call ballAngleUpdate
+        call UpwardDownWardPrintBall
+        mov ax,1300
+        push ax
+        call soundeffect
+        inc word[score]
+        jmp exitCollision
+    
+    nextColorRed:
+        mov bx,0x0ADB ;green color check
+        cmp bx,[es:di]
+        jne nextcolorTry
+        mov ax,0x0720
+        mov [es:di],ax
+        call ballAngleUpdate
+        call UpwardDownWardPrintBall
+        dec word[BrickerCounter]
+        mov ax,1000
+        push ax
+        call soundeffect
+        inc word[score]
+        jmp exitCollision
+    nextcolorTry:
+        mov bx,0x0EDB
+        cmp bx,[es:di]
+        jne lastcolortry
+        mov ax,0x0ADB
+        mov [es:di],ax
+        call ballAngleUpdate
+        call UpwardDownWardPrintBall
+        mov ax,1100
+        push ax
+        call soundeffect
+        inc word[score]
+        jmp exitCollision
+    lastcolortry:
+        mov bx,0x0CDB
+        cmp bx,[es:di]
+        jne exitCollision
+        mov ax,0x0EDB
+        mov [es:di],ax
+        call ballAngleUpdate
+        call UpwardDownWardPrintBall
+        mov ax,1200
+        push ax
+        call soundeffect
+        inc word[score]
+        jmp exitCollision
+
+
+    exitCollision:
+        popa
+        pop di
+        pop bx
+        pop ax
+        pop bp
+        ret
+
+BallMovement:
+        push bp
+        mov bp,sp
+    GameLoop:
+        call Timer
+        call Timer
+        call Timer
+        call Timer
+        call eraseBall
+        call UpwardDownWardPrintBall
+        call CollisionBallCheckForEveryDirection
+        call CollisionBallCheckForEveryDirection  ; for error handlings
+        call PrintBall
+        call PrintScoreAndLife
+        call isGameOver
+        cmp byte[gameOverFlag],1
+        je ezit
+        cmp byte[escCheckflag],1
+        je ezit
+        jmp GameLoop
+        ezit:
+        pop bp
+        ret
+
+;=====================================================
+Timer:
+        push bp
+        mov bp,sp
+        push cx
+        mov cx,10000
+        l98:
+        add cx,3
+        dec cx
+        cmp cx,0
+        jne l98
+        
+        pop cx
+        pop bp
+        ret
+
 
 main:
         call clrscr
