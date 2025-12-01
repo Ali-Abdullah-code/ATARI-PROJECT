@@ -382,6 +382,101 @@ readKeyBoard:
         ret
 
 
+;============================================================
+UpwardDownWardPrintBall:
+        push bp
+        mov bp, sp
+
+        ; Angle = 90 (Straight Up)
+        cmp word[ballAngle], 90
+        jne nextCmp45
+        sub word[ballPos], 160
+        jmp exit1
+
+    nextCmp45:
+        ; Angle = 45 (Up-Right)
+        cmp word[ballAngle], 45
+        jne newCmp135
+        sub word[ballPos], 158
+        jmp exit1
+
+    newCmp135:
+        ; Angle = 135 (Up-Left)
+        cmp word[ballAngle], 135
+        jne nextCmpfor270
+        sub word[ballPos], 162
+        jmp exit1
+
+    nextCmpfor270:
+        ; Angle = 270 (Straight Down)
+        cmp word[ballAngle], 270
+        jne nextcmp225
+        add word[ballPos], 160
+        jmp exit1
+
+    nextcmp225:
+        ; Angle = 225 (Down-Left)
+        cmp word[ballAngle], 225
+        jne nextCmp315
+        add word[ballPos], 158
+        jmp exit1
+
+    nextCmp315:
+        ; Angle = 315 (Down-Right)
+        cmp word[ballAngle], 315
+        jne exit1
+        add word[ballPos], 162
+
+    exit1:
+        pop bp
+        ret
+
+cornerCollisionAngleUpdate:
+        push bp
+        mov bp,sp
+        push ax
+        
+        mov ax, [ballAngle]   ; AX = angle
+        add ax, 180           ; AX = angle + 180
+        cmp ax, 360
+        jb storeangle      
+        sub ax, 360           ; subtract 360 to wrap
+    storeangle:
+        mov [ballAngle], ax  
+        pop ax
+        pop bp
+        ret
+
+;=====================================================
+ballAngleUpdate:
+        push bp
+        mov bp, sp
+        push ax
+        mov ax,360
+        sub ax,word[ballAngle]
+        mov word[ballAngle],ax
+        pop ax
+        pop bp
+        ret
+    wallAngleUpdate:
+        push bp
+        mov bp, sp
+        push ax
+        mov ax,180
+        sub ax,word[ballAngle]
+        cmp word[ballAngle], 180
+        jl exitWall
+        jg check225
+    check225:
+        add ax,360
+        jmp exitWall
+    exitWall:
+        mov word[ballAngle],ax
+        pop ax
+        pop bp
+        ret
+
+
 
 main:
         call clrscr
