@@ -161,6 +161,122 @@ printBoundaries:
         pop bp
         ret
 
+    printNumber:
+        push bp
+        mov bp, sp
+
+        push ax
+        push bx
+        push cx
+        push dx
+        push di
+        mov di,[bp+6]
+        mov ax,[bp+4]
+        mov bx, 10       ; base 10
+        mov cx, 0        ; digit count
+    convert_loop:
+        xor dx, dx       ; clear DX before div
+        div bx           ; AX / 10 → AX=quotient, DX=remainder
+
+        add dl, '0'      ; convert remainder to ASCII
+        push dx          ; store ASCII character
+        inc cx           ; count digit
+
+        cmp ax, 0
+        jne convert_loop
+
+    print_loop:
+        pop dx           ; get ASCII digit
+        mov dh, 0Ch      ; attribute
+        mov [es:di], dx  ; print character
+        add di, 2        ; move to next cell
+        loop print_loop
+
+        pop di
+        pop dx
+        pop cx
+        pop bx
+        pop ax
+        pop bp
+        ret 4
+
+;====================================================================
+
+erasePaddle:
+        push bp
+        mov bp, sp
+        push ax
+        push es
+        push cx
+        push di
+
+        mov ax, 0xb800
+        mov es, ax
+        mov ax, 0x0720
+        mov di, [paddlePos]
+        mov cx, 6
+
+        paddleLoop:
+        sub di, 2
+        mov [es:di], ax
+        loop paddleLoop
+        mov [paddlePos], di
+
+        pop di
+        pop cx
+        pop es
+        pop ax
+        pop bp
+        ret
+
+printPaddle:
+        push bp
+        mov bp, sp
+        push ax
+        push es
+        push cx
+        push di
+
+        mov ax, 0xb800
+        mov es, ax
+        mov ax, 0x07DF
+        mov di, [paddlePos]
+        mov cx, 6
+
+        cld
+        rep stosw
+        mov [paddlePos], di
+
+        pop di
+        pop cx
+        pop es
+        pop ax
+        pop bp
+        ret
+    
+CheckBoundaryforPaddle:
+        push bp
+        mov bp,sp
+        push di
+        mov di,[paddlePos]
+        cmp di,3682
+        ja newCmp
+        mov word [paddlePos], 3682
+        jmp exit
+
+    newCmp:
+        cmp di,3826
+        jb exit
+        mov word [paddlePos], 3826    
+
+        exit:
+        pop di
+        pop bp
+        ret
+
+;==============================================
+
+
 main:
         call clrscr
         cmp byte[flagEnter],1
