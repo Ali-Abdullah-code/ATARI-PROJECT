@@ -311,6 +311,77 @@ PrintBall:
         pop bp
         ret
 
+;==========================================================
+; Read KeyBoard 
+;==========================================================
+paddleMove: 
+        pusha
+        push ds
+        push es
+        mov ax,0xb800
+        mov es,ax
+
+        in al,0x60
+        cmp al,0x01
+        je esccode
+
+        cmp al, 4Bh        ; Left Arrow
+        je  key_left
+
+        cmp al, 4Dh        ; Right Arrow
+        je  key_right
+        jne nomatch
+
+    key_left:
+        call erasePaddle
+        mov di, [paddlePos]
+        sub di, 4
+        mov [paddlePos], di
+        call CheckBoundaryforPaddle
+        cmp word[paddleY],2
+        jle skipforme
+        sub word [paddleY],2
+        skipforme:
+        call printPaddle
+        jmp nomatch
+
+    key_right:
+        call erasePaddle
+        mov di, [paddlePos]
+        add di, 4
+        mov [paddlePos], di
+        call CheckBoundaryforPaddle
+        cmp word[paddleY],78
+        jge exitforyou
+        add word [paddleY],2
+        exitforyou:
+        call printPaddle
+        jmp nomatch
+    esccode:
+        mov byte[escCheckflag],1
+        nomatch: 
+        pop es
+        pop ds
+        popa
+        jmp far [oldIsr]
+
+readKeyBoard:
+        push bp
+        mov bp,sp
+        xor ax,ax
+        mov es,ax
+        mov ax,[es:9*4]
+        mov word[oldIsr],ax
+        mov ax,[es:9*4+2]
+        mov word[oldIsr+2],ax
+        cli
+        mov word[es:9*4],paddleMove
+        mov [es:9*4+2],cs
+        sti
+        pop bp
+        ret
+
+
 
 main:
         call clrscr
